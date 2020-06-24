@@ -85,8 +85,9 @@ def get_distribution(metric):
   thresholds = {
     'LCP':  [2500,4000],
     'FID':  [100,300],
-    'CLS':  [500,1500],
-    'TTFB': [500,1500]
+    'CLS':  [100,250],
+    'TTFB': [500,1500],
+    'FCP':  [1500,2500]
   }
 
   result = fetch_data(metric)
@@ -103,7 +104,7 @@ def get_distribution(metric):
   return [good, avg, poor]
 
 # Returns timeseries for a given percentile
-def get_percentile(metric):
+def get_percentile(metric, percentile):
   start_date = datetime.strptime(START_DATE, '%Y-%m-%d').date()
   end_date = datetime.strptime(END_DATE, '%Y-%m-%d').date()
 
@@ -122,8 +123,7 @@ def get_percentile(metric):
 
     a = np.array(vals)
 
-    # Adjust for different percentiles
-    p = np.percentile(a, 75)
+    p = np.percentile(a, percentile)
 
     cache.append(math.floor(p))
 
@@ -136,9 +136,9 @@ def main():
   global API
   API = initialize_analyticsreporting()
 
-  #response = get_distribution('LCP')
+  response = get_distribution('LCP')
 
-  response = get_percentile('LCP')
+  #response = get_percentile('LCP', 75)
 
   print(response)
 
