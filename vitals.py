@@ -5,9 +5,10 @@ import math
 import numpy as np
 
 SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
+
 KEY_FILE_LOCATION = '<REPLACE_WITH_JSON_FILE>'
 
-VIEW_ID = '<REPLACE_WITH_JSON_FILE>'
+VIEW_ID = '<REPLACE_WITH_VIEW_ID>'
 
 START_DATE = '2020-06-01'
 END_DATE   = '2020-06-14'
@@ -76,7 +77,7 @@ def fetch_data(metric, start_date = START_DATE, end_date = END_DATE):
   ).execute().get('reports')[0].get('data').get('rows')
 
 # Returns buckets for Good - Needs Improvement - Poor
-def get_distribution(metric):
+def get_good_avg_poor(metric):
   good = 0
   avg = 0
   poor = 0
@@ -103,8 +104,23 @@ def get_distribution(metric):
 
   return [good, avg, poor]
 
-# Returns timeseries for a given percentile
+# Returns percentile value for the time range
 def get_percentile(metric, percentile):
+  vals = []
+
+  result = fetch_data(metric)
+
+  for row in result:
+    vals.append(int(row.get('metrics')[0].get('values')[0]))
+
+  a = np.array(vals)
+
+  p = np.percentile(a, percentile)
+
+  return math.floor(p)
+
+# Returns timeseries for a given percentile
+def get_percentile_timeseries(metric, percentile):
   start_date = datetime.strptime(START_DATE, '%Y-%m-%d').date()
   end_date = datetime.strptime(END_DATE, '%Y-%m-%d').date()
 
@@ -131,14 +147,15 @@ def get_percentile(metric, percentile):
 
   return cache
 
+
 # Main
 def main():
   global API
   API = initialize_analyticsreporting()
 
-  response = get_distribution('LCP')
-
+  #response = get_good_avg_poor('LCP')
   #response = get_percentile('LCP', 75)
+  response = get_percentile_timeseries('LCP', 75)
 
   print(response)
 
